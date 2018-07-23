@@ -1,0 +1,113 @@
+taxa_name,functional_group,notes
+Acartia,Other copepods,"same Order, different Family from genus Calanus"
+Acartia danae,Other copepods,"same Order, different Family from genus Calanus"
+Acartia longiremis,Other copepods,"same Order, different Family from genus Calanus"
+Acrocalanus longicornis,Other copepods,"same Order, different Family from genus Calanus (same Family as Calcocalanus)"
+Aetideidae,Other copepods,"same Order, different Family from genus Calanus"
+Amphipoda,OIT,
+Anomura,OIT,decapoda crustacean
+Appendicularia,gelatinous,tunicate
+Augaptilidae,Other copepods,"same Order, different Family from genus Calanus"
+Balanidae,OIT,barnacles
+Bivalvia,OIT,bivalves
+Brachyura,OIT,crabs
+Calanoida,Other copepods,
+Calanus,Calanus,
+Calanus finmarchicus,Calanus,
+Calocalanus,Other copepods,"same Order, different Family from genus Calanus"
+Calocalanus pavo,Other copepods,"same Order, different Family from genus Calanus"
+Candacia,Other copepods,"same Order, different Family from genus Calanus"
+Candacia armata,Other copepods,
+Caridea,OIT,caridean shrimp
+Centropages,Centropages,
+Centropages bradyi,Centropages,
+Centropages furcatus,Centropages,
+Centropages hamatus,Centropages,
+Centropages typicus,Centropages,
+Cephalopoda,OIT,Cephalopods
+Chaetognatha,Chaetognaths,
+Clausocalanus,Other copepods,"same Order, different Family from genus Calanus"
+Clausocalanus arcuicornis,Other copepods,"same Order, different Family from genus Calanus"
+Clausocalanus furcatus,Other copepods,"same Order, different Family from genus Calanus"
+Cnidaria,gelatinous,
+Copepoda,Other copepods,
+Corycaeidae,Other copepods,
+Ctenophora,gelatinous,
+Cyclopoida,Other copepods,
+Decapoda,OIT,the 10-feeters
+Echinoderemata,OIT,echinoderms
+Ectoprocta,OIT,Bryozoa
+Eucalanus,Other copepods,"same Order, different Family from genus Calanus"
+Euchaeta marina,Other copepods,"same Order, different Family from genus Calanus"
+Euchaetidae,Other copepods,"same Order, different Family from genus Calanus"
+Euphausia krohnii,Euphausiids,
+Euphausiacea,Euphausiids,
+Eurytemora,Other copepods,"same Order, different Family from genus Calanus"
+Evadne,OIT,clam shrimp
+Evadne normanni,OIT,clam shrimp
+Foraminifera,OIT,ameboid protists
+Gammaridea,OIT,amphipod
+Gastropoda,OIT,mollusc
+Harpacticoida,Other copepods,different Order from Calanus
+Heteropoda,Pteropod,pteropod
+Heterorhabdidae,Other copepods,"same Order, different Family from genus Calanus"
+Hyperiidea,OIT,amphipod
+Isopoda,OIT,isopod
+Labidocera,Other copepods,"same Order, different Family from genus Calanus"
+Lucicutia,Other copepods,"same Order, different Family from genus Calanus"
+Lucifer,OIT,decapod 
+Mecynocera clausi,Other copepods,"same Order, different Family from genus Calanus (same Family as Calcocalanus)"
+Meganyctiphanes norvegica,Euphausiids,
+Metridia,Other copepods,"same Order, different Family from genus Calanus"
+Metridia lucens,Other copepods,"same Order, different Family from genus Calanus"
+Microcalanus,Other copepods,"same Order, different Family from genus Calanus"
+Mysida,OIT,small shrimp-like
+Nannocalanus minor,Calanus,Same Family as Calanus
+Nematoscelis megalops,Euphausiids,
+Neocalanus,Calanus,Same Family as Calanus
+Neomysis americana,OIT,Mysid
+Oikopleura,gelatinous,Tunicate
+Oithona,Other copepods,
+Oncaea,Other copepods,
+Osteichthyes,fish,
+Ostracoda,OIT,seed shrimp
+Paguridae,OIT,hermit crabs
+Paracalanus,Other copepods,"same Order, different Family from genus Calanus (same Family as Calcocalanus)"
+Paracalanus parvus,Other copepods,"same Order, different Family from genus Calanus (same Family as Calcocalanus)"
+Penilia avirostris,OIT,Order Diplostraca
+Pleuromamma,Other copepods,"same Order, different Family from genus Calanus (same Family as Metridia)"
+Pleuromamma abdominalis,Other copepods,"same Order, different Family from genus Calanus (same Family as Metridia)"
+Pleuromamma borealis,Other copepods,"same Order, different Family from genus Calanus (same Family as Metridia)"
+Podon,OIT,Order Diplostraca
+Polychaeta,OIT,"worm, Annelida"
+Pontellidae,Other copepods,"same Order, different Family from genus Calanus"
+Pseudocalanidae,Other copepods,"same Order, different Family from genus Calanus"
+Pseudocalanus minutus,Other copepods,"same Order, different Family from genus Calanus (same Family as Clausocalanus)"
+Rhincalanus,Other copepods,"same Order, differnet Family from genus Calanus"
+Rhincalanus cornutus,Other copepods,"same Order, differnet Family from genus Calanus"
+Rhincalanus nasutus,Other copepods,"same Order, differnet Family from genus Calanus"
+Sagitta,Chaetognaths,
+Sagitta elegans,Chaetognaths,
+Sagitta enflata,Chaetognaths,
+Salpidae,gelatinous,chrodate
+Scolecithricidae,Other copepods,"same Order, different Family from genus Calanus"
+Scolecithrix bradyi,Other copepods,"same Order, different Family from genus Calanus"
+Scolecithrix danae,Other copepods,"same Order, different Family from genus Calanus"
+Sergestidae,OIT,shrimp (Decapoda)
+Siphonophora,gelatinous,
+Spiratella,Pteropod,Thecosome (Pteropoda superorder)
+Stomatopoda,OIT,mantis shrimp
+Temora,Other copepods,"same Order, different Family from genus Calanus"
+Temora longicornis,Other copepods,"same Order, different Family from genus Calanus"
+Temora stylifera,Other copepods,"same Order, different Family from genus Calanus"
+Temora turbinata,Other copepods,"same Order, different Family from genus Calanus"
+Thaliacea,gelatinous,salps
+Thecosomata,Pteropod,
+Thysanoessa gregaria,Euphausiids,
+Thysanoessa inermis,Euphausiids,
+Thysanoessa longicaudata,Euphausiids,
+Thysanoessa raschii,Euphausiids,
+Tomopteris,OIT,"worm, Annelida"
+Tortanus discaudatus,Other copepods,"same Order, different Family from genus Calanus"
+Undinula vulgaris,Other copepods,"same Order, same Family, different genus"
+UNIDENTIFIED PLANKTON AND FRAGMENTS,crap,
