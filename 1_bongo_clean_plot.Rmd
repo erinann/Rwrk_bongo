@@ -1,5 +1,5 @@
 ---
-title: "Cleangind Bongo Data"
+title: "Part 1: Cleanging and Plotting Bongo Data"
 output: github_document
 ---
 
@@ -7,7 +7,7 @@ output: github_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-This work flow describes how I cleaned bongo data from an AMAPPS ship-based survey (summer, 2011).
+This work flow describes how I cleaned bongo data and created a basic station location plot. Data come from a summer, AMAPPS ship-based survey.
 
 Libraries
 ```{r libraries, results='hide', message=FALSE, warning=FALSE}
@@ -15,7 +15,10 @@ library(tidyverse)
 library(lubridate)
 library(sf)
 library(tmap)
+library(leaflet)
 ```
+
+# Import and cleaning
 
 Read in data. Some cleaning was done in Excel before hand to fix observations where data had shifted to incorrect columns.
 ```{r read_data, results='hide', message = FALSE, warning=FALSE}
@@ -52,7 +55,7 @@ dta_bg %>%
 ```
 
 
-Bongo tows were conducted every day before the start of line transect survey effort, before lunch, and after line transect survey effort. The start of survey effort was approximately 0600h local (1000h UTC). Breaking for lunch was approximately 1130h local (1530 UTC). The end of daily effort was approximately 1800h local (2200 UTC).
+Bongo tows were conducted every day before the start of line transect survey effort, at lunchtime, and after line transect survey effort ended for the day. The start of survey effort was approximately 0600h local (1000h UTC). Breaking for lunch was approximately 1130h local (1530 UTC). The end of daily effort was approximately 1800h local (2200 UTC).
 ```{r bongo_by_hr}
 dta_bg %>%
   mutate(hr = hour(DT_UTC)) %>%
@@ -64,7 +67,7 @@ dta_bg %>%
 ```
 
 
-Observations in the data are by species. This adds in information about the functional groups.
+Each row in the data set is an observation of a plankton species. I'll add functional group information to be able to group the data later on.
 ```{r rd_functional_data}
 functional_groups <- read_csv("data/plankton_functional_groups.csv")
 
@@ -76,7 +79,6 @@ dta_bg_jn %>%
   knitr::kable()
 ```
 
-
 Let's take a look at where the bongo stations occurred, but first let's double check that all observations within a station have the same latitude and longitude.
 ```{r spatial_duplicates}
 dta_bg %>% 
@@ -85,16 +87,17 @@ dta_bg %>%
   sum()
 ```
 
-Okay, there are no duplicate stations numbers with the combination of `station`, `latitude`, and `longitude`.
+There are no duplicate stations numbers with the combination of `station`, `latitude`, and `longitude`.
 
-Now let's see where the stations are, colored by leg. I'm going to add a little jitter in case there is spatial overlap. 
+# Plotting station locations
+
+Now let's see where the stations are, colored by leg. I'm going to add a little jitter to the spatial locations in case there is overlap. 
 ```{r spatial_plot}
-bg_stn <- dta_bg %>%
+bg_stn_sp <- dta_bg %>%
   select(leg, station, DT_UTC, latitude, longitude) %>%
   group_by(station) %>%
-  summarize(leg = first(leg), DT = first(DT_UTC), lat = first(latitude), lon = first(longitude))
-
-bg_stn_sp <- bg_stn %>%
+  summarize(leg = first(leg), DT = first(DT_UTC), 
+            lat = first(latitude), lon = first(longitude)) %>% 
   select(leg, station, DT, lat, lon) %>%
   st_as_sf(coords = c("lon", "lat"), crs = 4326)
 
@@ -105,7 +108,11 @@ ggplot() +
   scale_color_viridis_d()
 ```
 
-It looks like there are some areas where stations overlapped. Let's add a basemap to give the stations geographic context.
+Looks like there are some areas where stations overlapped. There is also one area that was sampled on all three legs (~40 N and 67.8 W). Could be someting interesting there. I'll have to get he station IDs. 
+
+# Plotting
+
+Let's add a basemap to give the stations geographic context.
 ```{r tmap}
 tmap_mode("view")
 
@@ -118,8 +125,6 @@ tm_basemap("Esri.OceanBasemap") +
 
 ... And because I wanted to learn how to use leaflet...
 ```{r leafletmap}
-library(leaflet)
-
 # start basemap
 map_base <- leaflet(options = leafletOptions(zoomControl = FALSE,
                                              zoomSnap = 0.1)) %>% 
@@ -132,16 +137,16 @@ map_base <- leaflet(options = leafletOptions(zoomControl = FALSE,
   # add a map scalebar
   addScaleBar(position = 'bottomright')
 
-
+# color palette set to the levels of `leg`
 pal <- colorFactor(palette = "viridis", levels = unique(bg_jitter$leg))
 
 map_base %>% 
-  addCircles(data = bg_jitter,  
+  addCircleMarkers(data = bg_jitter,  
              color = ~pal(leg),
-             weight = 3,
-             opacity = 1,
-             fillColor  = ~pal(leg),
-             fillOpacity = 1 ) %>% 
+             radius = 4,
+             stroke = FALSE,
+             fillOpacity = 0.8,
+             label = ~as.character(station)) %>% 
   addLegend(data = bg_jitter, 
             pal = pal, 
             values = ~leg,
@@ -152,5 +157,11 @@ map_base %>%
 
 ```
 
+By using `addCircleMarkers()` instead of `addCircles()`, I can use the `lable` argument and find the station ID for station in the cluster of three by Bear Seamount.
+
+Leg 1 = Station 15  
+Leg 2 = Station 52  
+Leg 3 = Station 86  
 
 
+Part 2 is coming soon.
