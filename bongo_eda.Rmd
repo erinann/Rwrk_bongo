@@ -1,153 +1,156 @@
 ---
-title: "HB1103 Bongo Data"
+title: "Cleangind Bongo Data"
 output: github_document
 ---
 
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+This work flow describes how I cleaned bongo data from an AMAPPS ship-based survey (summer, 2011).
 
 Libraries
-```{r results='hide', message=FALSE, warning=FALSE}
+```{r libraries, results='hide', message=FALSE, warning=FALSE}
 library(tidyverse)
 library(lubridate)
-library(stringr)
-
+library(sf)
+library(tmap)
 ```
 
-Reading in data.
-```{r results='hide', message = FALSE, warning=FALSE}
-
-dta_bg <- read_csv("bongo_20180604_edit.csv")
-
+Read in data. Some cleaning was done in Excel before hand to fix observations where data had shifted to incorrect columns.
+```{r read_data, results='hide', message = FALSE, warning=FALSE}
+dta_bg <- read_csv("data/bongo_2011_HB03_edit.csv")
 ```
 
-Showing all column names and checking date format.
-```{r}
-names(dta_bg)
-
+Show the column names and double check data formats.
+```{r date_format_check}
+glimpse(dta_bg)
 ```
 
-And checking the data format.
-```{r}
-head(dta_bg$formated_event_date)
-```
-
-Initial cleaning.
-```{r}
+Initial cleaning:    
+- Put `formated_event_date` in datetime format    
+- Add a `Date` column     
+- Arrange the data by datetime    
+- Add `leg` column as a factor    
+```{r initial_cleaning}
 dta_bg <- dta_bg %>% 
   mutate(DT_UTC = mdy_hm(formated_event_date), tz = "UTC",
          Date = date(mdy_hm(formated_event_date))) %>%
   arrange(DT_UTC) %>% # to put in time-order
-  mutate( leg = factor(case_when(Date <= ymd("2011-06-22") ~ 1,
-                         Date >= ymd("2011-06-27") & Date <= ymd("2011-07-15") ~ 2,
-                         Date >= ymd("2011-07-20") ~ 3)))
+  mutate(leg = factor(case_when(Date <= ymd("2011-06-22") ~ 1,
+                                Date >= ymd("2011-06-27") & Date <= ymd("2011-07-15") ~ 2,
+                                Date >= ymd("2011-07-20") ~ 3)))
+```
 
+Quick summary of stations per leg
+```{r stations_per_leg}
 dta_bg %>%
   group_by(leg) %>%
   summarize(`Number of Stations per Leg` = n_distinct(station)) %>%
-  ungroup()
+  ungroup() %>% 
+  knitr::kable()
 ```
 
-Here I'm stripping the date from the datetime to look at how many stations were during certing times of the day. Not really sure it will work as is. 
-```{r}
+
+Bongo tows were conducted every day before the start of line transect survey effort, before lunch, and after line transect survey effort. The start of survey effort was approximately 0600h local (1000h UTC). Breaking for lunch was approximately 1130h local (1530 UTC). The end of daily effort was approximately 1800h local (2200 UTC).
+```{r bongo_by_hr}
 dta_bg %>%
   mutate(hr = hour(DT_UTC)) %>%
   group_by(station) %>%
-  summarize(sta = first(station), hrstrt = first(hr)) %>%
-  ggplot(aes(hrstrt)) + geom_histogram(binwidth = 1) +
-  geom_vline(xintercept = c(10, 22)) +
+  summarize(hr_start = first(hr)) %>%
+  ggplot(aes(hr_start)) + geom_histogram(binwidth = 1) +
+  geom_vline(xintercept = c(10, 15, 22)) +
   xlab("Bongo Start Hour UTC")
-
 ```
 
 
-
-Reading in functional group data. I initally grouped the critters and Nadine checked them for me.
-```{r}
-fnct_grp <- read_csv("plankton_fnct_grp_from_Nadine.csv")
-```
-
-Joining the functional group file to the data file.
-```{r}
+Observations in the data are by species. This adds in information about the functional groups.
+```{r rd_functional_data}
+functional_groups <- read_csv("data/plankton_functional_groups.csv")
 
 dta_bg_jn <- dta_bg %>%  
-  left_join(fnct_grp, by = "taxa_name")
+  left_join(functional_groups, by = "taxa_name")
 
 dta_bg_jn %>% 
-  group_by(functional_group) %>%
-  summarise(cnt = n()) %>%
-  ungroup()
-
+  count(functional_group) %>% 
+  knitr::kable()
 ```
 
-Oops... where did the NAs come from? (Check the Next or '2' button if you don't see the NAs)
-```{r}
-dta_bg_jn %>%
-  filter(is.na(functional_group)) %>%
-  select(taxa_name, event_number)
+
+Let's take a look at where the bongo stations occurred, but first let's double check that all observations within a station have the same latitude and longitude.
+```{r spatial_duplicates}
+dta_bg %>% 
+  count(station, latitude, longitude) %>% 
+  duplicated() %>% 
+  sum()
 ```
 
-Well, at least they are all the same taxa name.
+Okay, there are no duplicate stations numbers with the combination of `station`, `latitude`, and `longitude`.
 
-Fixing the NAs in the taxa name.
-```{r}
-dta_bg_jn <- dta_bg_jn %>%
-  mutate(functional_group = ifelse(taxa_name == 'Paguridea', 'OIT', functional_group))
-
-dta_bg_jn %>%
-  group_by(functional_group) %>%
-  summarise(cnt = n()) %>%
-  ungroup()
-```
-
-Time for a little ArcGIS to determine transects and when EK60 data were collected (daytime). Going to group by station and export.
-
-```{r results='hide', message=FALSE, warning=FALSE}
-library(sp)
-library(rgdal)
-```
-
-```{r}
+Now let's see where the stations are, colored by leg. I'm going to add a little jitter in case there is spatial overlap. 
+```{r spatial_plot}
 bg_stn <- dta_bg %>%
   select(leg, station, DT_UTC, latitude, longitude) %>%
   group_by(station) %>%
   summarize(leg = first(leg), DT = first(DT_UTC), lat = first(latitude), lon = first(longitude))
 
-bg_stn %>% ggplot(aes(lon, lat, color = leg) ) +
-  geom_point()
+bg_stn_sp <- bg_stn %>%
+  select(leg, station, DT, lat, lon) %>%
+  st_as_sf(coords = c("lon", "lat"), crs = 4326)
+
+bg_jitter <- st_jitter(bg_stn_sp, amount = .08)
+
+ggplot() +
+  geom_sf(data = bg_jitter, aes(color = leg)) +
+  scale_color_viridis_d()
 ```
 
-```{r}
-#turn time into a character column to bring into ArcGIS.
-bg_stn_df <- bg_stn %>%
-  mutate(DT_UTC = as.character(DT)) %>%
-  select(DT_UTC, leg, station, lat, lon)
-  data.frame()
+It looks like there are some areas where stations overlapped. Let's add a basemap to give the stations geographic context.
+```{r tmap}
+tmap_mode("view")
+
+tm_basemap("Esri.OceanBasemap") +
+  tm_shape(bg_jitter) +
+  tm_dots(size = .03, alpha = 0.7, col = "leg",  palette = "viridis") +
+  tm_scale_bar(position = c("left", "bottom"))
+
+```
+
+... And because I wanted to learn how to use leaflet...
+```{r leafletmap}
+library(leaflet)
+
+# start basemap
+map_base <- leaflet(options = leafletOptions(zoomControl = FALSE,
+                                             zoomSnap = 0.1)) %>% 
+  # add ocean basemap
+  addProviderTiles(providers$Esri.OceanBasemap) %>%
   
-head(bg_stn_df)
-
-bg_coords <- cbind(bg_stn_df$lon, bg_stn_df$lat)     #creating coordinate list 
-row.names(bg_coords) <- 1:nrow(bg_coords)               #adding index values to rows             
-str(bg_coords)                                          #compact summary of object                 
-
-head(bg_coords)
-
-crs_var <- CRS("+proj=longlat +ellps=WGS84")                #adding WGS84 geoid, 'CRS' comes from sp or rgdal package
-bg_sp <- SpatialPoints(bg_coords, proj4string = crs_var)    #turing CTD into SpatialPoints class object, S4
-summary(bg_sp)
-
-bbox(bg_sp)                              #returns bounding box
-proj4string(bg_sp)                       #returns the projection and ellispoid
+  # add another layer with place names
+  addProviderTiles(providers$Hydda.RoadsAndLabels, group = 'Place names') %>%
+  
+  # add a map scalebar
+  addScaleBar(position = 'bottomright')
 
 
-# turn the data into a spatial points data frame with data frame and coordinates list
-bg_spdf <- SpatialPointsDataFrame(bg_coords, bg_stn_df, proj4string = crs_var, match.ID = TRUE)     
-names(bg_spdf)
+pal <- colorFactor(palette = "viridis", levels = unique(bg_jitter$leg))
 
+map_base %>% 
+  addCircles(data = bg_jitter,  
+             color = ~pal(leg),
+             weight = 3,
+             opacity = 1,
+             fillColor  = ~pal(leg),
+             fillOpacity = 1 ) %>% 
+  addLegend(data = bg_jitter, 
+            pal = pal, 
+            values = ~leg,
+            opacity = 1,
+            title = "Leg",
+            position = "bottomright") %>% 
+  addMiniMap(position = "topleft", width = 125, height = 125)
 
-##### write spatial data frame to shapefile####
-writeOGR(bg_spdf, "C://Users//ealab//Documents//ArcGIS//AMAPPS//shp_from_R", layer="XYbg_R_shp",driver="ESRI Shapefile", verbose=TRUE)
-
-#Import the shapefile to file geodatabase, then convert DT from text to datetime using 'Convert Time Field'
 ```
 
-summary(dta_bg$DT_UTC)
+
 
